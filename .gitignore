@@ -1,0 +1,34 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+*.iml
+*.ipr
+
+# IntelliJ
+out/
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+# Cucumber Report exclude from
+cucumberHtmlReport
+
+# Allure
+.allure
+allure-results
+
+test-output
+reports
+
+# framework log
+logs
