@@ -12,6 +12,6 @@ public class BookingDto {
     public String lastname;
     public int totalprice;
     public boolean depositpaid;
-    public DatesDto datesDto;
+    public DatesDto dates;
     public String additionalneeds;
 }

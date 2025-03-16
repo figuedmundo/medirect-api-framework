@@ -1,0 +1,10 @@
+<suite name="API Test Suite">
+    <listeners>
+        <listener class-name="com.medirect.api.listeners.ResponseValidationListener"/>
+    </listeners>
+    <test name="Booking API Tests">
+        <classes>
+            <class name="com.medirect.api.BookingTest"/>
+        </classes>
+    </test>
+</suite>

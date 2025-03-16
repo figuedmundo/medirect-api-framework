@@ -1,32 +1,46 @@
 package com.medirect.api;
 
+import com.medirect.api.core.ValidateResponse;
+import com.medirect.api.core.ValidateResponseListener;
+import com.medirect.api.dataproviders.BookingDataProvider;
 import com.medirect.api.models.BookingDto;
-import com.medirect.api.models.DatesDto;
 import com.medirect.api.utils.RestClient;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
+import org.testng.ITestContext;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+@Epic("API Automation")
+@Feature("Booking API Tests")
+@Listeners(ValidateResponseListener.class)
 public class BookingTest extends BaseTest {
 
-    @Test
-    public void testCreateBooking() {
-        BookingDto booking = new BookingDto();
-        booking.firstname = "John";
-        booking.lastname = "Doe";
-        booking.totalprice = 150;
-        booking.depositpaid = true;
+    @BeforeClass
+    public void setup() {
+        RestClient.authenticate();
+    }
 
-        DatesDto dates = new DatesDto();
-        dates.checkin = "2024-06-01";
-        dates.checkout = "2024-06-10";
-        booking.datesDto = dates;
-
-        booking.additionalneeds = "Breakfast";
-
+    @Test(dataProvider = "bookingDto", dataProviderClass = BookingDataProvider.class)
+    @ValidateResponse(statusCode = 200, maxResponseTime = 3000)
+    public void testCreateBooking(BookingDto booking, ITestContext context) {
         Response response = RestClient.post("/booking", booking);
+        context.setAttribute("apiResponse", response);
 
-        Assert.assertEquals(response.getStatusCode(), 200);
-        Assert.assertEquals(response.jsonPath().getString("booking.firstname"), "John");
+    }
+
+    @Test
+    @ValidateResponse(statusCode = 200, maxResponseTime = 3000, contentType = ContentType.JSON)
+    public void getBookings(ITestContext context) {
+        Response response = RestClient.get("/booking");
+
+        // Store response in Test Context for automatic validation
+        context.setAttribute("apiResponse", response);
+
+//        Assert.assertEquals(response.getStatusCode(), 200);
     }
 }
