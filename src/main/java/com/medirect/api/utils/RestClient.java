@@ -1,10 +1,13 @@
 package com.medirect.api.utils;
 
+import com.medirect.api.models.AuthDto;
+import com.medirect.api.models.TokenDto;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import lombok.Getter;
 
 import java.util.Map;
 
@@ -12,19 +15,23 @@ public class RestClient {
     private static final String BASE_URL = ConfigManager.config().getBaseUrl();
     private static final String USERNAME = ConfigManager.config().getUsername();
     private static final String PASSWORD = ConfigManager.config().getPassword();
+    @Getter
     private static String token;
 
-    private static RequestSpecification givenRequest() {
+    static {
+        RestAssured.filters(new AllureRestAssured()); // Attach API logs to Allure
+    }
+
+    private static RequestSpecification givenRequest(Map<String, String> headers) {
         RequestSpecification request = RestAssured.given()
                 .baseUri(BASE_URL)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .filter(new AllureRestAssured());
+                .contentType(ContentType.JSON);
+//                .filter(new AllureRestAssured());
 
-//        // Add headers if provided
-//        if (headers != null) {
-//            request.headers(headers);
-//        }
+        // Add headers if provided
+        if (headers != null) {
+            request.headers(headers);
+        }
 
         if (token != null) {
             request.header("Authorization", "Bearer " + token);
@@ -34,20 +41,33 @@ public class RestClient {
     }
 
     public static void authenticate() {
+        AuthDto authRequest = AuthDto.builder()
+                .username(USERNAME)
+                .password(PASSWORD)
+                .build();
+
         Response response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body("{ \"username\": \"" + USERNAME + "\", \"password\": \"" + PASSWORD + "\" }")
+                .body(authRequest)
                 .post(BASE_URL + "/auth");
 
         if (response.getStatusCode() == 200) {
-            token = response.jsonPath().getString("token");
+            token = response.as(TokenDto.class).getToken();
         } else {
             throw new RuntimeException("Authentication failed. Status code: " + response.getStatusCode());
         }
     }
 
+    public static void deleteToken() {
+        token = null;
+    }
+
     public static Response get(String endpoint) {
-        return givenRequest()
+        return get(endpoint, null);
+    }
+
+    public static Response get(String endpoint, Map<String, String> headers) {
+        return givenRequest(headers)
                 .when()
                 .get(endpoint)
                 .then()
@@ -57,7 +77,11 @@ public class RestClient {
     }
 
     public static Response post(String endpoint, Object body) {
-        return givenRequest()
+        return post(endpoint, body, null);
+    }
+
+    public static Response post(String endpoint, Object body, Map<String, String> headers) {
+        return givenRequest(headers)
                 .body(body)
                 .when()
                 .post(endpoint)
@@ -68,7 +92,11 @@ public class RestClient {
     }
 
     public static Response put(String endpoint, Object body) {
-        return givenRequest()
+        return put(endpoint, body, null);
+    }
+
+    public static Response put(String endpoint, Object body, Map<String, String> headers) {
+        return givenRequest(headers)
                 .body(body)
                 .when()
                 .put(endpoint)
@@ -78,8 +106,27 @@ public class RestClient {
                 .response();
     }
 
+    public static Response patch(String endpoint, Object body) {
+        return patch(endpoint, body, null);
+    }
+
+    public static Response patch(String endpoint, Object body, Map<String, String> headers) {
+        return givenRequest(headers)
+                .body(body)
+                .when()
+                .patch(endpoint)
+                .then()
+                .log().all()
+                .extract()
+                .response();
+    }
+
     public static Response delete(String endpoint) {
-        return givenRequest()
+        return delete(endpoint, null);
+    }
+
+    public static Response delete(String endpoint, Map<String, String> headers) {
+        return givenRequest(headers)
                 .when()
                 .delete(endpoint)
                 .then()

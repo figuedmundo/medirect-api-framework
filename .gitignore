@@ -25,7 +25,7 @@ cucumberHtmlReport
 
 # Allure
 .allure
-allure-results
+target/allure-results
 
 test-output
 reports

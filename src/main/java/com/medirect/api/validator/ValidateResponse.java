@@ -1,4 +1,4 @@
-package com.medirect.api.core;
+package com.medirect.api.validator;
 
 import io.restassured.http.ContentType;
 
